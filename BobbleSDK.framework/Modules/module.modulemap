@@ -1,0 +1,6 @@
+framework module BobbleSDK {
+  umbrella header "BobbleSDK.h"
+
+  export *
+  module * { export * }
+}
