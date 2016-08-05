@@ -21,7 +21,7 @@ iOS 8.0 or above
 in progress
 #### Manual Installation
 
-Download the BobbleOnboarding folder from GitHub, move this subfolder over to your project folder, and drag it into your Xcode project.
+Download the BobbleSDK.framework and opencv2.framework from this GitHub, move over to your project folder, and drag it into your Xcode project.
 
 ## Usage
 
