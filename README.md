@@ -1,19 +1,5 @@
 # BobbleSDK
 
-BobbleSDKOnboarding is a framework built to allow users to add Bobble creation functionality inside their app.
-
-## System Requirements
-iOS 8.0 or above
-
-## Installation
-
-#### As a CocoaPods Dependency
-in progress
-#### Manual Installation
-
-Download the BobbleOnboarding folder from GitHub, move this subfolder over to your project folder, and drag it into your Xcode project.
-
-## Overview
 Bobble iOS SDK enables you to do the following tasks
 * Create bobblified heads
 * Select preferred head
@@ -26,17 +12,30 @@ Bobble iOS SDK enables you to do the following tasks
 
 The following guide explains all the steps involved in integrating BobbleSDK with your app.
 
+## System Requirements
+iOS 8.0 or above
+
+## Installation
+
+#### As a CocoaPods Dependency
+in progress
+#### Manual Installation
+
+Download the BobbleOnboarding folder from GitHub, move this subfolder over to your project folder, and drag it into your Xcode project.
+
 ## Usage
 
-To use it in any class, you should import the BobbleiOSSDK to that class. For Objective-C, #import <BobbleSDK/BobbleSDK.h> and for swift, import BobbleSDK.
+To use it in any class, you should import the BobbleSDK to that class. For Objective-C, #import <BobbleSDK/BobbleSDK.h> and for swift, import BobbleSDK.
 
 Write the following line in your AppDelegate to use it anywhere in the app.
 
 ```objc
-[BobbleSDK initialize:CLIENT_ID]
+// Objective-C
+[BobbleSDKCore initialize:CLIENT_ID]
 ```
 ```swift
-BobbleSDK.initialize(CLIENT_ID)
+// Swift
+BobbleSDKCore.initialize(CLIENT_ID)
 ```
 
 Here, CLIENT_ID is a unique identifier you should request Bobble before using the SDK. If it is not initialized before using any of its API’s,
@@ -44,15 +43,20 @@ they will not work as intended.
 
 Before calling any of the API’s, call `isReady` function to check whether SDK is ready or not.
 ```objc
-[BobbleSDK isReady]]
+// Objective-C
+[BobbleSDKCore isReady]]
 ```
 ```swift
-BobbleSDK.isReady()
+// Swift
+BobbleSDKCore.isReady()
 ```
+
 To bobblify your face, you can use the following function as given below
-``` Swift
+
+### Bobblification without UI (Net connectivity is necesssary)
+``` objc
 // Objective-C
-[BobbleSDK bobblify:IMAGE_OBJ gender:@"male" completionBlock:^(BobbleSDKFace *face, NSError *error) {
+[BobbleSDKCore bobblify:IMAGE_OBJ gender:@"male" completionBlock:^(BobbleSDKFace *face, NSError *error) {
     if (error) {
         NSLog(@"failed to bobblify the face");
     }
@@ -60,7 +64,7 @@ To bobblify your face, you can use the following function as given below
 ```
 ``` Swift
 // swift
-BobbleSDK.bobblify(IMAGE_OBJ, gender: "female") { (face, error) in
+BobbleSDKCore.bobblify(IMAGE_OBJ, gender: "female") { (face, error) in
     if (error != nil) {
         print("failed to bobblify the face")
     }
@@ -68,30 +72,57 @@ BobbleSDK.bobblify(IMAGE_OBJ, gender: "female") { (face, error) in
 ```
 You can give "male" or "female" in the gender. IMAGE_OBJ is an `UIImage` object that you should pass to get `BobbleSDKFace`
 
+### Bobblification with UI (Net connectivity is good for bobble quality but not necessary)
+Class `BobbleOnboardingViewController` operates around a very strict modal implementation. It cannot be pushed to a `UINavigationController` stack, and must be presented as a full-screen dialog on an existing view controller.
+
+#### Basic Implementation
+```objc
+- (void)presentBobbleOnboardingController 
+{
+  BobbleOnboardingViewController* VC = [BobbleOnboardingViewController new];
+  VC.delegate = self;
+
+  UINavigationController* navVC = [[UINavigationController alloc] initWithRootViewController:VC];
+  [self presentViewController:navVC animated:YES completion:nil];
+}
+
+- (void)bobblificationSuccess:(BobbleSDKFace *)face {
+  // Bobblification succeeded returning BobbleSDKFace object.
+}
+
+- (void)bobblificationFailure:(NSError *)error {
+  // Bobblification process failed with error.
+}
+
+- (void)onboardingController bobblificationCanceled {
+  // The user canceled the bobblification process.
+}
+```
+
 To get all faces(`BobbleSDKFace`),
 ``` Swift
 // Objective-C
-NSArray *allFaces = [BobbleSDK getAllFaces];
+NSArray *allFaces = [BobbleSDKCore getAllFaces];
 ```
 ``` Swift
 // Swift
-let allFaces = BobbleSDK.getAllFaces();
+let allFaces = BobbleSDKCore.getAllFaces();
 ```
 
 To get all heads(`BobbleSDKHead`),
 ``` Swift
 // Objective-C
-NSArray *allHeads = [BobbleSDK getAllBobbleHeads];
+NSArray *allHeads = [BobbleSDKCore getAllBobbleHeads];
 ```
 ``` Swift
 // Swift
-let allHeads = BobbleSDK.getAllBobbleHeads();
+let allHeads = BobbleSDKCore.getAllBobbleHeads();
 ```
 
 To get the list of Sticker Categories(`BobbleSDKStickerCategory`) available for download,
 ``` Swift
 // Objective-C
-[BobbleSDK getStickerCategoryList:LIMIT page:PAGE completionBlock:^(NSArray *results, NSError *error) {
+[BobbleSDKCore getStickerCategoryList:LIMIT page:PAGE completionBlock:^(NSArray *results, NSError *error) {
     if (!error) {
         //results consist of BobbleSDKStickerCategory objects
     }else {
@@ -101,7 +132,7 @@ To get the list of Sticker Categories(`BobbleSDKStickerCategory`) available for 
 ```
 ``` Swift
 // Swift
-BobbleSDK.getStickerCategoryList(LIMIT, page: PAGE) { (results, error) in
+BobbleSDKCore.getStickerCategoryList(LIMIT, page: PAGE) { (results, error) in
     if error != nil {
         //results consist of BobbleSDKStickerCategory objects
     }else {
@@ -109,13 +140,13 @@ BobbleSDK.getStickerCategoryList(LIMIT, page: PAGE) { (results, error) in
     }
 }
 ```
-LIMIT -> Limit on number of sticker categories to be fetched \
-PAGE -> page number
+LIMIT -> Limit on number of sticker categories to be fetched
+PAGE -> page number. Starts with zero.
 
 To download a particular sticker category, you can do the following
 ``` Swift
 // Objective-C
-[BobbleSDK downloadStickerCategory:STICKER_CATEGORY completionBlock:^(NSError *error) {
+[BobbleSDKCore downloadStickerCategory:STICKER_CATEGORY completionBlock:^(NSError *error) {
     if (!error) {
         NSLog(@"failed to get sticker categories");
     }
@@ -123,7 +154,7 @@ To download a particular sticker category, you can do the following
 ```
 ``` Swift
 // Swift
-BobbleSDK.downloadStickerCategory(STICKER_CATEGORY) { (error) in
+BobbleSDKCore.downloadStickerCategory(STICKER_CATEGORY) { (error) in
     if (error != nil) {
         print("successfully downloaded stickers from sticker pack")
     }
@@ -134,41 +165,40 @@ STICKER_CATEGORY -> `BobbleSDKStickerCategory`
 To get the list of all downloaded sticker categories
 ``` Swift
 // Objective C
-NSArray *allStickerCategories = [BobbleSDK getAllStickerCategories];
+NSArray *allStickerCategories = [BobbleSDKCore getAllStickerCategories];
 ```
 ``` Swift
 // Swift
-let allStickerCategories = BobbleSDK.getAllStickerCategories()
+let allStickerCategories = BobbleSDKCore.getAllStickerCategories()
 ```
 
 To get list of stickers(`BobbleSDKSticker` object) for a sticker category(`BobbleSDKStickerCategory` object)
 ``` Swift
 // Objective-C 
-NSArray *stickerList = [BobbleSDK getStickerListForStickerCategory:STICKER_CATEGORY withGender:BobbleGenderMale];
+NSArray *stickerList = [BobbleSDKCore getStickerListForStickerCategory:STICKER_CATEGORY withGender:BobbleGenderMale];
 ```
 ``` Swift
 // Swift
-let stickerList = BobbleSDK.getStickerListForStickerCategory(STICKER_CATEGORY, withGender: BobbleGenderType.Male)
+let stickerList = BobbleSDKCore.getStickerListForStickerCategory(STICKER_CATEGORY, withGender: BobbleGenderType.Male)
 ```
-`BobbleGenderType` -> enum representing gender type\
+`BobbleGenderType` -> enum representing gender type
 STICKER_CATEGORY -> `BobbleSDKStickerCategory` object
-
 
 To get preferred bobble head for bobble face
 ``` Swift
 // Objective-C
-BobbleSDKHead *head = [BobbleSDK getPreferredBobbleHeadForFace:BOBBLE_HEAD];
+BobbleSDKHead *head = [BobbleSDKCore getPreferredBobbleHeadForFace:BOBBLE_HEAD];
 ``` 
 ``` Swift
 // Swift
-let head:BobbleSDKHead = BobbleSDK.getPreferredBobbleHeadForFace(BOBBLE_HEAD)
+let head:BobbleSDKHead = BobbleSDKCore.getPreferredBobbleHeadForFace(BOBBLE_HEAD)
 ```
 BOBBLE_HEAD -> `BobbleSDKHead` object
 
 To get sticker image, do the following
 ``` Swift
 // Objective-C
-[BobbleSDK createSticker:HEAD sticker:STICKER completionBlock:^(UIImage *image, NSError *error) {
+[BobbleSDKCore createSticker:HEAD sticker:STICKER completionBlock:^(UIImage *image, NSError *error) {
     if(error) {
         NSLog(@"failed to create image");
     }else {
@@ -178,7 +208,7 @@ To get sticker image, do the following
 ```
 ``` Swift
 // Swift
-BobbleSDK.createSticker(HEAD, sticker: STICKER) { (image, error) in
+BobbleSDKCore.createSticker(HEAD, sticker: STICKER) { (image, error) in
     if (error != nil) {
         print("failed to create image")    
     }else {
@@ -186,13 +216,13 @@ BobbleSDK.createSticker(HEAD, sticker: STICKER) { (image, error) in
     }
 }
 ```
-HEAD -> `BobbleSDKHead` object\
+HEAD -> `BobbleSDKHead` object
 STICKER -> `BobbleSDKSticker` object
 
 To get sticker image with text, do the following
 ``` Swift
 // Objective-C
-[BobbleSDK createStickerOnTheFly:HEAD sticker:STICKER text:TEXT completionBlock:^(UIImage *image, NSError *error) {
+[BobbleSDKCore createStickerOnTheFly:HEAD sticker:STICKER text:TEXT completionBlock:^(UIImage *image, NSError *error) {
     if(!error) {
         // Use the sticker image
     }else {
@@ -202,7 +232,7 @@ To get sticker image with text, do the following
 ```
 ``` swift
 // Swift
-BobbleSDK.createStickerOnTheFly(HEAD, sticker: STICKER, text: TEXT) { (image, error) in
+BobbleSDKCore.createStickerOnTheFly(HEAD, sticker: STICKER, text: TEXT) { (image, error) in
     if (error != nil) {
         print("failed to create sticker");
     }else {
@@ -210,8 +240,8 @@ BobbleSDK.createStickerOnTheFly(HEAD, sticker: STICKER, text: TEXT) { (image, er
     }
 }
 ```
-HEAD -> `BobbleSDKHead` object\
-STICKER -> `BobbleSDKSticker` object\
+HEAD -> `BobbleSDKHead` object
+STICKER -> `BobbleSDKSticker` object
 TEXT -> string
 
 ### APIs
@@ -232,7 +262,7 @@ Method to check if SDK is ready to do something.
 ``` swift
 + (void)shutDown
 ```
-Method to close bobble SDK instance.\
+Method to close bobble SDK instance.
 **Precondition:-** SDK should be enabled
 
 #### 4. Bobblify
@@ -241,7 +271,7 @@ Method to close bobble SDK instance.\
           gender:(NSString*)gender
  completionBlock:(BobbleSDKBobblificationHandler)handler
  ```
- This method is used to create bobble head from your selfie. The argument 'gender' can either be the string `"male"` or `"female"`. Usage of the function is as demonstrated in the previous section. None of the arguments passed should be Null.\
+ This method is used to create bobble head from your selfie. The argument 'gender' can either be the string `"male"` or `"female"`. Usage of the function is as demonstrated in the previous section. None of the arguments passed should be Null.
 **PreCondition:-** SDK should be enabled. 
  
 #### 5. Create Sticker
@@ -250,7 +280,7 @@ Method to close bobble SDK instance.\
               sticker:(BobbleSDKSticker*)sticker
       completionBlock:(BobbleSDKStickerCreationHandler)handler
 ```
-This method is for creating stickers. Usage of the function is as demonstrated in the previous section. None of the arguments passed should be Null.\
+This method is for creating stickers. Usage of the function is as demonstrated in the previous section. None of the arguments passed should be Null.
 **PreCondition:-** SDK should be enabled.
 
 #### 6. Create OTF Sticker
@@ -260,7 +290,7 @@ This method is for creating stickers. Usage of the function is as demonstrated i
                          text:(NSString*)text
               completionBlock:(BobbleSDKStickerCreationHandler)handler
 ```
-This method is for creating stickers with OTF text. Usage of the function is as demonstrated in the previous section. None of the arguments passed should be Null.\
+This method is for creating stickers with OTF text. Usage of the function is as demonstrated in the previous section. None of the arguments passed should be Null.
 **PreCondition:-** SDK should be enabled.
 
 #### 7. getAllFaces
@@ -317,28 +347,4 @@ To get pagewise sticker categories list. Arguments are :-
 It accepts BobbleSDKStickerCategory as an argument to download the pack
 
 ## Examples
-`BobbleOnboarding` operates around a very strict modal implementation. It cannot be pushed to a `UINavigationController` stack, and must be presented as a full-screen dialog on an existing view controller.
-
-### Basic Implementation
-```objc
-- (void)presentBobbleOnboardingController 
-{
-  BobbleOnboardingViewController* VC = [BobbleOnboardingViewController new];
-  VC.delegate = self;
-
-  UINavigationController* navVC = [[UINavigationController alloc] initWithRootViewController:VC];
-  [self presentViewController:navVC animated:YES completion:nil];
-}
-
-- (void)onboardingController:(BobbleOnboardingViewController*) onboardingController bobblificationSuccess:(BobbleSDKFace *)face {
-  // Bobblification succeeded returning BobbleSDKFace object.
-}
-
-- (void)onboardingController:(BobbleOnboardingViewController*) onboardingController bobblificationFailure:(NSError *)error {
-  // Bobblification process failed with error.
-}
-
-- (void)onboardingController:(BobbleOnboardingViewController*) onboardingController bobblificationCanceled {
-  // The user canceled the bobblification process.
-}
-```
+Sample Code has been included with this project.
